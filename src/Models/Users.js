@@ -27,6 +27,28 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
 
+    phoneNumber: {
+        type: String,
+        required: false,
+        default: null
+    },
+
+    dateOfBirth: {
+        type: Date,
+        required: false,
+        default: null
+    },
+
+    aboutMe: {
+        type: String,
+        default: null
+    },
+
+    enableNotification: {
+        type: Boolean,
+        default: true
+    },
+
     pushSubscriptions: {
         type: [Object],
         default: []
@@ -51,6 +73,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+
     resetPasswordExpires: {
         type: Date,
         default: null
