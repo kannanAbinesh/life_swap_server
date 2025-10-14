@@ -4,7 +4,7 @@
   "description": "share habits",
   "main": "server.js",
   "scripts": {
-    "start-dev": "cross-env ENVIRONMENT=DEVELOPMENT nodemon server",
+    "start-dev": "node server",
     "start": "node server"
   },
   "author": "VSPL",
