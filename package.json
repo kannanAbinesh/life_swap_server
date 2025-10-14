@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start-dev": "cross-env ENVIRONMENT=DEVELOPMENT nodemon server",
-    "start-prod": "cross-env ENVIRONMENT=PRODUCTION node server"
+    "start": "node server"
   },
   "author": "VSPL",
   "license": "ISC",
