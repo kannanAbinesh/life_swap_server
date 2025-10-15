@@ -8,7 +8,9 @@ const cookieParser = require("cookie-parser");
 
 /* Helpers. */
 const { port, db } = require('./config.js');
+const { verifyToken } = require('./src/Middlewares/verifyToken.js');
 const authRoutes = require('./src/Routes/authRoutes');
+const habitsRoutes = require('./src/Routes/habitsRoutess.js');
 
 /* Variables. */
 const app = express();
@@ -22,7 +24,8 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* Routes middlewares. */
-app.use('/api/v1/auth/', authRoutes);
+app.use('/api/v1/auth/', verifyToken, authRoutes);
+app.use('/api/v1/habits/', verifyToken, habitsRoutes);
 
 /* MongoDB connections. */
 mongoose.connect(db?.url)

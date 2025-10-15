@@ -2,7 +2,8 @@
 const express = require('express');
 
 /* Controllers. */
-const { manageUsers } = require('../Controllers/manageUsers');
+const { editProfile } = require('../Controllers/editProfile');
+const { register } = require('../Controllers/register');
 const { login } = require('../Controllers/login');
 const { initialVerification } = require('../Controllers/initialVerification');
 const { changePassword } = require('../Controllers/changePassword');
@@ -13,7 +14,8 @@ let authRoutes = express.Router();
 /* Auth routes. */
 authRoutes.get('/initialVerification', initialVerification);
 authRoutes.post('/login', login);
-authRoutes.post('/manageUsers', manageUsers);
+authRoutes.post('/register', register);
 authRoutes.post('/changePassword', changePassword);
+authRoutes.put('/editProfile', editProfile);
 
 module.exports = authRoutes;
