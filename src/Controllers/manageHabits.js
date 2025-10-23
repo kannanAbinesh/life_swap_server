@@ -6,25 +6,18 @@ const HabitImages = require('../Models/HabitImages');
 module.exports = {
     manageHabits: async (req, res) => {
         try {
+
             const { habitName, description, timeDuration, lifestyle } = req.body;
             const { _id: userId } = req?.user || {};
-            console.log('ppppppppppppp')
 
-            // Validate required fields
             if (!habitName || !description || !timeDuration || !lifestyle) {
                 if (req.files && req.files.length > 0) {
                     req.files.forEach(file => {
-                        if (fs.existsSync(file.path)) {
-                            fs.unlinkSync(file.path);
-                        }
+                        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
                     });
-                }
-                return res.status(400).json({
-                    success: false,
-                    status: 400,
-                    message: 'Please provide all required fields: habitName, description, timeDuration, lifestyle'
-                });
-            }
+                };
+                return res.status(400).json({ status: 400, message: 'Please provide all required fields: habitName, description, timeDuration, lifestyle' });
+            };
 
             // Create new habit
             const newHabit = new Habits({

@@ -24,5 +24,5 @@ const profileSchema = new mongoose.Schema({
 
 });
 
-const User = mongoose.model('ProfileImage', profileSchema, 'ProfileImage');
-module.exports = User;
+const ProfileImage = mongoose.model('ProfileImage', profileSchema, 'ProfileImage');
+module.exports = ProfileImage;
