@@ -1,131 +1,67 @@
-/* ============================================
-   CONTROLLER: imageUploadController.js
-   ============================================ */
-
-/* Plugins */
-const path = require('path');
-const fs = require('fs');
-
 /* Models */
-const User = require('../Models/Users');
-const ProfileImage = require('../Models/ProfileImage');
-const Habit = require('../Models/Habits'); // You'll need to create this model
+const ProfileImage = require("../Models/ProfileImage");
+const User = require("../Models/Users"); // ✅ Add User model if you need to update user details
+const fs = require("fs");
+const path = require("path");
 
 module.exports = {
-
-    /* ==========================================
-       Upload Profile Picture
-       ========================================== */
     editProfilePicture: async (req, res) => {
         try {
-            const { _id } = req.user;
-
-            if (!_id) {
+            const { _id: userId } = req?.user || {};
+            
+            if (!userId) {
                 return res.status(401).json({
                     status: 401,
-                    success: false,
-                    message: 'Unauthorized: User ID missing.'
+                    message: "Unauthorized user."
                 });
             }
 
-            // Check if file was uploaded
-            if (!req.files || !req.files.files) {
+            if (!req?.files || req.files.length === 0) {
                 return res.status(400).json({
                     status: 400,
-                    success: false,
-                    message: 'No file uploaded.'
+                    message: "No image uploaded."
                 });
             }
 
-            const file = req.files.files;
-
-            // Validate file type
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-            if (!allowedTypes.includes(file.mimetype)) {
-                return res.status(400).json({
-                    status: 400,
-                    success: false,
-                    message: 'Invalid file type. Only JPG, PNG, and WEBP are allowed.'
-                });
-            }
-
-            // Validate file size (5MB max)
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-                return res.status(400).json({
-                    status: 400,
-                    success: false,
-                    message: 'File size exceeds 5MB limit.'
-                });
-            }
-
-            /* Find user */
-            const user = await User.findOne({ _id, deletedAt: null });
-            if (!user) {
-                return res.status(404).json({
-                    status: 404,
-                    success: false,
-                    message: 'User not found.'
-                });
-            }
-
-            // Create uploads directory if it doesn't exist
-            const uploadDir = path.join(__dirname, '../uploads/profiles');
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-
-            // Generate unique filename
-            const fileExtension = path.extname(file.name);
-            const uniqueFileName = `profile_${_id}_${Date.now()}${fileExtension}`;
-            const uploadPath = path.join(uploadDir, uniqueFileName);
-
-            // Move file to uploads directory
-            await file.mv(uploadPath);
-
-            // Delete old profile picture if exists
-            const oldProfileImage = await ProfileImage.findOne({ userId: _id });
-            if (oldProfileImage && oldProfileImage.image) {
-                const oldFilePath = path.join(__dirname, '../uploads/profiles', path.basename(oldProfileImage.image));
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
+            // Find and delete old profile image
+            const oldProfile = await ProfileImage.findOne({ userId });
+            if (oldProfile) {
+                const oldImagePath = path.join(__dirname, "../uploads/habits", oldProfile.image);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
                 }
+                await ProfileImage.deleteOne({ _id: oldProfile._id });
             }
 
-            // Save to database
-            const imageUrl = `/uploads/profiles/${uniqueFileName}`;
+            // Save new image
+            const newImage = req.files[0];
+            const newProfile = new ProfileImage({
+                image: newImage.filename,
+                userId: userId
+            });
+            await newProfile.save();
 
-            if (oldProfileImage) {
-                oldProfileImage.image = imageUrl;
-                oldProfileImage.updatedAt = new Date();
-                await oldProfileImage.save();
-            } else {
-                await ProfileImage.create({
-                    userId: _id,
-                    image: imageUrl,
-                });
-            }
-
-            // Update user's profilePicture field
-            user.profilePicture = imageUrl;
-            user.updatedAt = new Date();
-            await user.save({ validateBeforeSave: false });
+            // ✅ Return the image URL
+            const imageUrl = `${req.protocol}://${req.get('host')}/uploads/habits/${newImage.filename}`;
+            
+            // ✅ Optionally update User model with profile picture
+            // await User.findByIdAndUpdate(userId, { profilePicture: imageUrl });
 
             return res.status(200).json({
                 status: 200,
-                success: true,
-                message: 'Profile picture updated successfully.',
-                imageUrl: imageUrl,
+                message: "Profile image updated successfully.",
+                data: newProfile,
+                imageUrl: imageUrl, // ✅ Added this
+                userDetails: req.user // ✅ Return updated user details
             });
 
         } catch (error) {
-            console.error('Profile picture upload error:', error);
+            console.error("Error updating profile picture:", error);
             return res.status(500).json({
                 status: 500,
-                success: false,
-                message: 'Something went wrong, please try again later.',
+                message: "Something went wrong, please try again later.",
                 error: error.message
             });
         }
-    },
+    }
 };
