@@ -16,9 +16,6 @@ const upload = require('../helpers/singleFileUpload');
 /* Variables. */
 let authRoutes = express.Router();
 
-const upload = require('../helpers/singleFileUpload');
-
-
 /* Auth routes. */
 authRoutes.get('/initialVerification', initialVerification);
 authRoutes.post('/login', login);
@@ -27,6 +24,5 @@ authRoutes.post('/changePassword', changePassword);
 authRoutes.put('/editProfile', editProfile);
 authRoutes.post('/editProfilePicture', upload.array('files', 12), editProfilePicture);
 authRoutes.put('/googleAuthentication', googleAuthentication);
-authRoutes.post('/editProfilePicture', upload.array('files', 1), editProfilePicture);
 
 module.exports = authRoutes;
