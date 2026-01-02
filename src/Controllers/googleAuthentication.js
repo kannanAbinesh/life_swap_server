@@ -10,7 +10,6 @@ const { googleLogin } = require('../../config');
 module.exports = {
     googleAuthentication: async (req, res) => {
         try {
-            console.log('pppppppppppppp')
 
             const client = new OAuth2Client(googleLogin?.android);
             const { appToken } = req?.body;
@@ -21,7 +20,6 @@ module.exports = {
             });
             const payload = ticket.getPayload();
             const { email, name, picture, sub: googleId } = payload;
-            console.log(email, name, picture, googleId, 'email, name, picture, sub: googleIdemail, name, picture, sub: googleIdemail, name, picture, sub: googleIdemail, name, picture, sub: googleId')
 
             // let user = await Users.findOne({ email });
             // if (!user) {

@@ -1,5 +1,6 @@
 /* Models. */
 const User = require('../Models/Users');
+const Login = require('../Models/Login');
 
 module.exports = {
     login: async (req, res) => {
@@ -21,8 +22,9 @@ module.exports = {
             /* Check password match. */
             const isMatch = await userDetails.comparePassword(password);
             if (!isMatch) return res.status(400).json({ status: 400, message: "Please enter the valid password" });
-            
+
             const token = await userDetails.generateAuthToken(); /* Generate auth token. */
+            await new Login({ token, userId: userDetails._id }).save();
 
             return res.status(200).json({
                 status: 200,

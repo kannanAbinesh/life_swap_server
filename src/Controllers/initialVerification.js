@@ -1,5 +1,6 @@
 /* Models. */
 const User = require('../Models/Users');
+const ProfileImage = require('../Models/ProfileImage');
 
 /* Plugins. */
 const jwt = require('jsonwebtoken');
@@ -24,6 +25,9 @@ module.exports = {
                 const userDetails = await User.findOne({ _id: decodedToken._id, deletedAt: null });
                 if (!userDetails) return res.status(404).json({ status: 404 });
 
+                /* Retrive profile picture. */
+                const profilePicture = await ProfileImage.findOne({ userId: decodedToken?._id });
+
                 let responseData = {
                     _id: userDetails._id,
                     name: userDetails.name,
@@ -31,7 +35,8 @@ module.exports = {
                     phoneNumber: userDetails?.phoneNumber ?? null,
                     dateOfBirth: userDetails?.dateOfBirth ?? null,
                     aboutMe: userDetails?.aboutMe ?? null,
-                    enableNotification: userDetails?.enableNotification ?? null
+                    enableNotification: userDetails?.enableNotification ?? null,
+                    profilePicture: profilePicture?._id ? profilePicture?.image : ""
                 };
 
                 return res.status(200).json({ status: 200, data: { ...responseData } });
