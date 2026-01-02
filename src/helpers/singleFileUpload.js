@@ -25,7 +25,6 @@ const upload = multer({
     fileFilter: (req, file, cb) => {
         let mimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
         let extensions = ['.jpeg', '.jpg', '.png'];
-
         if (mimeTypes.includes(file.mimetype) && extensions.includes(path.extname(file.originalname).toLowerCase())) {
             return cb(null, true);
         } else {

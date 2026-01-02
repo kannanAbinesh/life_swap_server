@@ -7,16 +7,16 @@ module.exports = {
     manageHabits: async (req, res) => {
         try {
 
-            const { habitName, description, timeDuration, lifestyle } = req.body;
+            const { habitName, description, timeDuration, lifeStyle } = req.body;
             const { _id: userId } = req?.user || {};
 
-            if (!habitName || !description || !timeDuration || !lifestyle) {
+            if (!habitName || !description || !timeDuration || !lifeStyle) {
                 if (req.files && req.files.length > 0) {
                     req.files.forEach(file => {
                         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
                     });
                 };
-                return res.status(400).json({ status: 400, message: 'Please provide all required fields: habitName, description, timeDuration, lifestyle' });
+                return res.status(400).json({ status: 400, message: 'Please provide all required fields: habitName, description, timeDuration, lifeStyle' });
             };
 
             // Create new habit
@@ -25,7 +25,7 @@ module.exports = {
                 habitName,
                 description,
                 timeDuration,
-                lifestyle,
+                lifeStyle
             });
             await newHabit.save();
 
