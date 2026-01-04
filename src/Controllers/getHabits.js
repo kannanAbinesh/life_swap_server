@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 module.exports = {
     getHabits: async (req, res) => {
         try {
+            console.log('pppppppppppppppppppp')
             const type = req?.query?.type; // "browse" or "myhabit"
             const searchQuery = req?.query?.query; // search query
             const userId = req?.user?._id;
@@ -33,7 +34,7 @@ module.exports = {
                         { lifeStyle: searchRegex }
                     ];
                 }
-            } else if (type === 'browse') {
+            } else if (type === 'explore') {
                 // For browse: fetch all habits EXCEPT the current user's habits
                 // NO SEARCH for browse type
                 if (userId) {
@@ -57,7 +58,7 @@ module.exports = {
             ];
 
             // Add user lookup only for browse type
-            if (type === 'browse') {
+            if (type === 'explore') {
                 pipeline.push(
                     {
                         $lookup: {
