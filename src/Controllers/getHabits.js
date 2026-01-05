@@ -4,23 +4,16 @@ const mongoose = require('mongoose');
 module.exports = {
     getHabits: async (req, res) => {
         try {
-            console.log('pppppppppppppppppppp')
-            const type = req?.query?.type; // "browse" or "myhabit"
-            const searchQuery = req?.query?.query; // search query
-            const userId = req?.user?._id;
 
-            // Determine match condition
+
+            const { type, searchQuery } = req?.query;
+            const userId = req?.user?._id;
+            console.log(type, searchQuery, 'type, searchQuerytype, searchQuerytype, searchQuery')
+
             let matchCondition = {};
 
             if (type === 'myhabit') {
-                // For myhabit: only fetch habits belonging to the current user
-                if (!userId) {
-                    return res.status(401).json({
-                        success: false,
-                        status: 401,
-                        message: 'Unauthorized: User not found'
-                    });
-                }
+                if (!userId) return res.status(400).json({ status: 400, message: 'Unauthorized: User not found' });
 
                 // Base condition - user's habits
                 matchCondition.userId = new mongoose.Types.ObjectId(userId);
