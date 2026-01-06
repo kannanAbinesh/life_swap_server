@@ -5,6 +5,7 @@ const express = require('express');
 const { manageHabits } = require('../Controllers/manageHabits');
 const { getHabits } = require('../Controllers/getHabits');
 const { adoptHabits } = require('../Controllers/adoptHabits');
+const { getAdoptedHabits } = require('../Controllers/getAdoptedHabits');
 
 /* Helpers. */
 const upload = require('../helpers/singleFileUpload');
@@ -15,6 +16,7 @@ let habitsRoutes = express.Router();
 /* Habit routes. */
 habitsRoutes.post('/manageHabits', upload.array('files', 12), manageHabits);
 habitsRoutes.get('/getHabits', getHabits);
+habitsRoutes.get('/getAdoptedHabits', getAdoptedHabits);
 habitsRoutes.post('/adoptHabits', adoptHabits);
 
 module.exports = habitsRoutes;
