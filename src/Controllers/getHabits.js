@@ -4,60 +4,30 @@ const mongoose = require('mongoose');
 module.exports = {
     getHabits: async (req, res) => {
         try {
-
-
-            const { type, searchQuery } = req?.query;
+            const { type, searchQuery, habitId } = req?.query;
             const userId = req?.user?._id;
-            console.log(type, searchQuery, 'type, searchQuerytype, searchQuerytype, searchQuery')
 
-            let matchCondition = {};
-
-            if (type === 'myhabit') {
-                if (!userId) return res.status(400).json({ status: 400, message: 'Unauthorized: User not found' });
-
-                // Base condition - user's habits
-                matchCondition.userId = new mongoose.Types.ObjectId(userId);
-
-                // Add search query condition ONLY for myhabit type
-                if (searchQuery && searchQuery.trim() !== '') {
-                    const searchRegex = new RegExp(searchQuery.trim(), 'i'); // case-insensitive search
-                    matchCondition.$or = [
-                        { habitName: searchRegex },
-                        { description: searchRegex },
-                        { lifeStyle: searchRegex }
-                    ];
-                }
-            } else if (type === 'explore') {
-                // For browse: fetch all habits EXCEPT the current user's habits
-                // NO SEARCH for browse type
-                if (userId) {
-                    matchCondition.userId = { $ne: new mongoose.Types.ObjectId(userId) };
-                }
-                // If userId doesn't exist, fetch all habits (matchCondition remains empty)
-            }
-            // If type is neither "browse" nor "myhabit", fetch all habits
-
-            // Build aggregation pipeline
-            let pipeline = [
-                { $match: matchCondition },
-                {
-                    $lookup: {
-                        from: 'HabitImages',       // collection name for HabitImages
-                        localField: '_id',          // Habit _id
-                        foreignField: 'habitId',    // HabitImages.habitId
-                        as: 'images'
-                    }
-                }
-            ];
-
-            // Add user lookup only for browse type
-            if (type === 'explore') {
-                pipeline.push(
+            // If habitId is provided, fetch that specific habit with full details
+            if (habitId) {
+                const pipeline = [
+                    {
+                        $match: {
+                            _id: new mongoose.Types.ObjectId(habitId)
+                        }
+                    },
                     {
                         $lookup: {
-                            from: 'Users',              // Users collection
-                            localField: 'userId',       // Habit userId
-                            foreignField: '_id',        // User _id
+                            from: 'HabitImages',
+                            localField: '_id',
+                            foreignField: 'habitId',
+                            as: 'images'
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'Users',
+                            localField: 'userId',
+                            foreignField: '_id',
                             as: 'userInfo'
                         }
                     },
@@ -69,9 +39,124 @@ module.exports = {
                     },
                     {
                         $lookup: {
-                            from: 'ProfileImage',       // ProfileImage collection
-                            localField: 'userId',       // Habit userId
-                            foreignField: 'userId',     // ProfileImage userId
+                            from: 'ProfileImage',
+                            localField: 'userId',
+                            foreignField: 'userId',
+                            as: 'profileImageInfo'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$profileImageInfo',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'AdoptedHabits',
+                            localField: '_id',
+                            foreignField: 'habitId',
+                            as: 'adoptedUsers'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            user: {
+                                userId: '$userId',
+                                name: '$userInfo.name',
+                                profileImage: '$profileImageInfo.image'
+                            },
+                            adoptedCount: { $size: '$adoptedUsers' }
+                        }
+                    },
+                    {
+                        $project: {
+                            userInfo: 0,
+                            profileImageInfo: 0,
+                            userId: 0,
+                            adoptedUsers: 0
+                        }
+                    }
+                ];
+
+                const habitDetails = await Habits.aggregate(pipeline);
+
+                if (!habitDetails || habitDetails.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        status: 404,
+                        message: 'Habit not found'
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    status: 200,
+                    message: 'Habit details fetched successfully',
+                    data: habitDetails[0]
+                });
+            }
+
+            // Original logic for type-based fetching
+            let matchCondition = {};
+
+            if (type === 'myhabit') {
+                if (!userId) return res.status(400).json({ status: 400, message: 'Unauthorized: User not found' });
+
+                // Base condition - user's habits
+                matchCondition.userId = new mongoose.Types.ObjectId(userId);
+
+                // Add search query condition ONLY for myhabit type
+                if (searchQuery && searchQuery.trim() !== '') {
+                    const searchRegex = new RegExp(searchQuery.trim(), 'i');
+                    matchCondition.$or = [
+                        { habitName: searchRegex },
+                        { description: searchRegex },
+                        { lifeStyle: searchRegex }
+                    ];
+                }
+            } else if (type === 'explore') {
+                // For explore: fetch all habits EXCEPT the current user's habits
+                if (userId) {
+                    matchCondition.userId = { $ne: new mongoose.Types.ObjectId(userId) };
+                }
+            }
+
+            // Build aggregation pipeline
+            let pipeline = [
+                { $match: matchCondition },
+                {
+                    $lookup: {
+                        from: 'HabitImages',
+                        localField: '_id',
+                        foreignField: 'habitId',
+                        as: 'images'
+                    }
+                }
+            ];
+
+            // Add user lookup only for explore type
+            if (type === 'explore') {
+                pipeline.push(
+                    {
+                        $lookup: {
+                            from: 'Users',
+                            localField: 'userId',
+                            foreignField: '_id',
+                            as: 'userInfo'
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: '$userInfo',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'ProfileImage',
+                            localField: 'userId',
+                            foreignField: 'userId',
                             as: 'profileImageInfo'
                         }
                     },
