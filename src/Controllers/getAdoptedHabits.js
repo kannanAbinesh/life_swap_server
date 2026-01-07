@@ -6,7 +6,6 @@ module.exports = {
     getAdoptedHabits: async (req, res) => {
         try {
             const userId = req?.user?._id;
-            console.log(userId, 'userIduserIduserIduserId')
 
             if (!userId) {
                 return res.status(400).json({
@@ -77,26 +76,21 @@ module.exports = {
                         preserveNullAndEmptyArrays: true
                     }
                 },
-                // Add user field with only required data
+                // Restructure to match getHabits response format
                 {
-                    $addFields: {
-                        'habitInfo.user': {
-                            _id: '$userInfo._id',
-                            name: '$userInfo.name',
-                            profileImage: '$profileImageInfo.image'
-                        },
-                        'habitInfo.images': '$images'
-                    }
-                },
-                // Project final structure - only inclusion
-                {
-                    $project: {
-                        _id: 1,
-                        habitId: 1,
-                        userId: 1,
-                        createdAt: 1,
-                        updatedAt: 1,
-                        habit: '$habitInfo'
+                    $replaceRoot: {
+                        newRoot: {
+                            $mergeObjects: [
+                                '$habitInfo',
+                                {
+                                    images: '$images',
+                                    user: {
+                                        name: '$userInfo.name',
+                                        profileImage: '$profileImageInfo.image'
+                                    }
+                                }
+                            ]
+                        }
                     }
                 },
                 // Sort by creation date
